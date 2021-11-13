@@ -36,9 +36,5 @@ jobs:
         registry-url: https://npm.pkg.github.com/
         scope: '@dashboardlabs'
     - run: npm ci
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
     - run: npm run build
     - run: npx -p @dashboardlabs/dashdev dashdev graphql:schema ./dist/src.js | npx -p @apollo/rover rover subgraph publish dashlabs@${{inputs.environment}} --name ${{inputs.service}} --routing-url ${{inputs.endpoint}} --convert --schema -
-      env:
-        NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN}}

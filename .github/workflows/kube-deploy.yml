@@ -1,0 +1,85 @@
+name: Deploy to Kube Cluster
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        required: true
+        type: string
+      node-selector:
+        required: true
+        type: string
+      manifest-file:
+        required: false
+        default: config/manifest.yml
+        type: string
+      gcp-project-id:
+        required: false
+        default: "dashlabs"
+        type: string
+      kube-cluster:
+        required: false
+        default: "dashlabs --region asia-southeast1"
+        type: string
+    secrets:
+      NODE_AUTH_TOKEN:
+        required: true
+      GOOGLE_AUTH_TOKEN:
+        required: true
+      DOPPLER_KEY:
+        required: false
+
+jobs:
+  deploy:
+    name: Kube Deploy
+    runs-on: [self-hosted, gcp-dashlabs-private-network]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download Docker Digest
+      uses: actions/download-artifact@v2
+      with:
+        name: digest
+    - name: Import Docker Digest
+      run: echo "DIGEST=$(cat digest.txt)" >> $GITHUB_ENV
+    - run: echo "REPO_NAME=$(echo "${{ github.repository }}" | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
+    - name: Find and Replace Docker Image
+      uses: jacobtomlinson/gha-find-replace@v1
+      with:
+        find: "<IMAGE>"
+        replace: "registry.dashlabs.xyz/dashlabsai/${{ env.REPO_NAME }}@${{ env.DIGEST }}"
+        include: "${{ inputs.manifest-file }}"
+    - name: Find and Replace Doppler Key
+      if: secrets.DOPPLER_KEY
+      uses: jacobtomlinson/gha-find-replace@v1
+      with:
+        find: "<DOPPLER_KEY>"
+        replace: "${{ secrets.DOPPLER_KEY }}"
+        include: "${{ inputs.manifest-file }}"
+    - name: Find and Replace Namespace
+      if: secrets.DOPPLER_KEY
+      uses: jacobtomlinson/gha-find-replace@v1
+      with:
+        find: "<NAMESPACE>"
+        replace: "${{ inputs.namespace }}"
+        include: "${{ inputs.manifest-file }}"
+    - name: Find and Replace Node Selector
+      if: inputs.node-selector
+      uses: jacobtomlinson/gha-find-replace@v1
+      with:
+        find: "<NODE_SELECTOR>"
+        replace: "${{ inputs.node-selector }}"
+        include: "${{ inputs.manifest-file }}"
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@master
+      with:
+        version: '290.0.1'
+        service_account_key: ${{ secrets.GOOGLE_AUTH_TOKEN }}
+        project_id: ${{ inputs.gcp-project-id }}
+    - name: Get Kubectl Credentials
+      run: |-
+        gcloud container clusters get-credentials ${{ inputs.kube-cluster }}
+    - name: Deploy to Kubernetes Cluster
+      run: |-
+        kubectl apply -f "${{ inputs.manifest-file }}" -n dashlabs-dev
+    - name: Verify Deployment
+      run: kubectl rollout status deployment/${{ env.REPO_NAME }} -n ${{ inputs.namespace }}

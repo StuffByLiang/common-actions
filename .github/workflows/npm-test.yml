@@ -25,6 +25,7 @@ jobs:
         node-version: '14'
         cache: 'npm'
         registry-url: https://npm.pkg.github.com/
+        scope: '@dashboardlabs'
     - run: npm ci
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

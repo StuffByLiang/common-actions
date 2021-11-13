@@ -1,0 +1,44 @@
+name: Update Apollo Gateway Server
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      service:
+        required: true
+        type: string
+      endpoint:
+        required: true
+        type: string
+    secrets:
+      NODE_AUTH_TOKEN:
+        required: true
+      APOLLO_KEY:
+        required: true
+
+jobs:
+  test:
+    name: Update Gateway Server
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN}}
+      APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        cache: 'npm'
+        registry-url: https://npm.pkg.github.com/
+        scope: '@dashboardlabs'
+    - run: npm ci
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+    - run: npm run build
+    - run: npx -p @dashboardlabs/dashdev dashdev graphql:schema ./dist/src.js | npx -p @apollo/rover rover subgraph publish dashlabs@${{inputs.environment}} --name ${{inputs.service}} --routing-url ${{inputs.endpoint}} --convert --schema -
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN}}

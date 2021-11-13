@@ -1,0 +1,49 @@
+name: Sync Branches
+
+on:
+  workflow_call: {}
+
+jobs:
+  master_to_develop:
+    name: Sync Master to Develop
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Merge master -> develop
+      uses: devmasx/merge-branch@v1.3.1
+      with:
+        type: now
+        from_branch: master
+        target_branch: develop
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Trigger Docker Deploy (develop)
+      uses: benc-uk/workflow-dispatch@v1
+      with:
+        workflow: Docker Build
+        token: ${{ secrets.NODE_AUTH_TOKEN }}
+        ref: refs/heads/develop
+  develop_to_delta:
+    name: Sync Develop to Delta
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: master_to_develop
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Merge develop -> delta
+      uses: devmasx/merge-branch@v1.3.1
+      with:
+        type: now
+        from_branch: develop
+        target_branch: delta
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Trigger Docker Deploy (delta)
+      uses: benc-uk/workflow-dispatch@v1
+      with:
+        workflow: Docker Build
+        token: ${{ secrets.NODE_AUTH_TOKEN }}
+        ref: refs/heads/delta

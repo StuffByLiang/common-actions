@@ -2,6 +2,11 @@ name: Docker Build
 
 on:
   workflow_call:
+    inputs:
+      nextjs-project:
+        required: false
+        default: false
+        type: boolean
     secrets:
       HARBOR_AUTH_USERNAME:
         required: true
@@ -17,6 +22,16 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+
+    - name: Download NextJS Build Output
+      uses: actions/download-artifact@v2
+      if: inputs.nextjs-project
+      with:
+        name: nextjs-output
+
+    - name: 'Untar files'
+      if: inputs.nextjs-project
+      run: tar -xvf nextjs-output.tar ./out/
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1

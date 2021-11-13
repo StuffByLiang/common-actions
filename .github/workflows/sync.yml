@@ -1,7 +1,10 @@
 name: Sync Branches
 
 on:
-  workflow_call: {}
+  workflow_call:
+    secrets:
+      NODE_AUTH_TOKEN:
+        required: true
 
 jobs:
   master_to_develop:

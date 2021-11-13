@@ -1,0 +1,29 @@
+name: NPM Test
+
+on:
+  workflow_call:
+    secrets:
+      NODE_AUTH_TOKEN:
+        required: true
+
+jobs:
+  test:
+    name: Run NPM Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mongodb_version: ["4.4.8", "5.0.2"]
+      fail-fast: false
+    env:
+      MONGOMS_VERSION: ${{ matrix.mongodb_version }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '14'
+    - run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" > .npmrc
+    - run: echo "@dashboardlabs:registry=https://npm.pkg.github.com/" >> .npmrc
+    - run: npm install
+    - run: npm run test

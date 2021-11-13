@@ -49,21 +49,20 @@ jobs:
         replace: "registry.dashlabs.xyz/dashlabsai/${{ env.REPO_NAME }}@${{ env.DIGEST }}"
         include: "${{ inputs.manifest-file }}"
     - name: Find and Replace Doppler Key
-      if: secrets.DOPPLER_KEY
+      if: secrets.DOPPLER_KEY != ''
       uses: jacobtomlinson/gha-find-replace@v1
       with:
         find: "<DOPPLER_KEY>"
         replace: "${{ secrets.DOPPLER_KEY }}"
         include: "${{ inputs.manifest-file }}"
     - name: Find and Replace Namespace
-      if: secrets.DOPPLER_KEY
+      if: secrets.DOPPLER_KEY != ''
       uses: jacobtomlinson/gha-find-replace@v1
       with:
         find: "<NAMESPACE>"
         replace: "${{ inputs.namespace }}"
         include: "${{ inputs.manifest-file }}"
     - name: Find and Replace Node Selector
-      if: inputs.node-selector
       uses: jacobtomlinson/gha-find-replace@v1
       with:
         find: "<NODE_SELECTOR>"

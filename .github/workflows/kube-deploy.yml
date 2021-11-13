@@ -43,29 +43,31 @@ jobs:
       run: echo "DIGEST=$(cat digest.txt)" >> $GITHUB_ENV
     - run: echo "REPO_NAME=$(echo "${{ github.repository }}" | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
     - name: Find and Replace Docker Image
-      uses: jacobtomlinson/gha-find-replace@v1
+      uses: jacobtomlinson/gha-find-replace@v2
       with:
         find: "<IMAGE>"
+        regex: false
         replace: "registry.dashlabs.xyz/dashlabsai/${{ env.REPO_NAME }}@${{ env.DIGEST }}"
         include: "${{ inputs.manifest-file }}"
     - name: Find and Replace Doppler Key
-      if: ${{ secrets.DOPPLER_KEY != '' }}
-      uses: jacobtomlinson/gha-find-replace@v1
+      uses: jacobtomlinson/gha-find-replace@v2
       with:
         find: "<DOPPLER_KEY>"
+        regex: false
         replace: "${{ secrets.DOPPLER_KEY }}"
         include: "${{ inputs.manifest-file }}"
     - name: Find and Replace Namespace
-      if: ${{ secrets.DOPPLER_KEY != '' }}
-      uses: jacobtomlinson/gha-find-replace@v1
+      uses: jacobtomlinson/gha-find-replace@v2
       with:
         find: "<NAMESPACE>"
+        regex: false
         replace: "${{ inputs.namespace }}"
         include: "${{ inputs.manifest-file }}"
     - name: Find and Replace Node Selector
-      uses: jacobtomlinson/gha-find-replace@v1
+      uses: jacobtomlinson/gha-find-replace@v2
       with:
         find: "<NODE_SELECTOR>"
+        regex: false
         replace: "${{ inputs.node-selector }}"
         include: "${{ inputs.manifest-file }}"
     - name: Setup gcloud

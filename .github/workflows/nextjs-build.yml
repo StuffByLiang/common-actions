@@ -1,0 +1,43 @@
+name: NextJS Build
+
+on:
+  workflow_call:
+    secrets:
+      NODE_AUTH_TOKEN:
+        required: true
+
+jobs:
+  build:
+    name: Build NextJS Project
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        cache: 'npm'
+        registry-url: https://npm.pkg.github.com/
+        scope: '@dashboardlabs'
+    - name: Cache NextJS Build
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/.next/cache
+        key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+        restore-keys: |
+          ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+    - name: Install Packages
+      run: npm ci 
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+    - name: Build NextJS Project
+      run: npm run build
+    - name: Export NextJS Project to Static HTML
+      run: ./node_modules/.bin/next export
+    - name: 'Tar HTML Output'
+      run: tar -cvf nextjs-output.tar ./out/
+    - uses: actions/upload-artifact@v2
+      with:
+        name: nextjs-output
+        path: nextjs-output.tar
+        retention-days: 1

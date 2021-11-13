@@ -80,6 +80,6 @@ jobs:
         gcloud container clusters get-credentials ${{ inputs.kube-cluster }}
     - name: Deploy to Kubernetes Cluster
       run: |-
-        kubectl apply -f "${{ inputs.manifest-file }}" -n dashlabs-dev
+        kubectl apply -f "${{ inputs.manifest-file }}" -n ${{ inputs.namespace }}
     - name: Verify Deployment
       run: kubectl rollout status deployment/${{ env.REPO_NAME }} -n ${{ inputs.namespace }}

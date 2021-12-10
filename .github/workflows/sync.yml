@@ -2,9 +2,18 @@ name: Sync Branches
 
 on:
   workflow_call:
+    inputs:
+      use-gh-app:
+        required: false
+        default: false
+        type: boolean
     secrets:
       NODE_AUTH_TOKEN:
-        required: true
+        required: false
+      GH_APP_ID:
+        required: false
+      GH_APP_PRIVATE_KEY:
+        required: false
 
 jobs:
   master_to_develop:
@@ -22,8 +31,23 @@ jobs:
         from_branch: master
         target_branch: develop
         github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get Token
+      id: token
+      uses: getsentry/action-github-app-token@v1
+      if: inputs.use-gh-app
+      with:
+        app_id: ${{ secrets.GH_APP_ID }}
+        private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
     - name: Trigger Docker Deploy (develop)
       uses: benc-uk/workflow-dispatch@v1
+      if: inputs.use-gh-app
+      with:
+        workflow: Docker Build
+        token: ${{ steps.token.outputs.token }}
+        ref: refs/heads/develop
+    - name: Trigger Docker Deploy (develop)
+      uses: benc-uk/workflow-dispatch@v1
+      if: inputs.use-gh-app == false
       with:
         workflow: Docker Build
         token: ${{ secrets.NODE_AUTH_TOKEN }}
@@ -44,8 +68,23 @@ jobs:
         from_branch: develop
         target_branch: delta
         github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get Token
+      id: token
+      uses: getsentry/action-github-app-token@v1
+      if: inputs.use-gh-app
+      with:
+        app_id: ${{ secrets.GH_APP_ID }}
+        private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
     - name: Trigger Docker Deploy (delta)
       uses: benc-uk/workflow-dispatch@v1
+      if: inputs.use-gh-app
+      with:
+        workflow: Docker Build
+        token: ${{ steps.token.outputs.token }}
+        ref: refs/heads/delta
+    - name: Trigger Docker Deploy (delta)
+      uses: benc-uk/workflow-dispatch@v1
+      if: inputs.use-gh-app == false
       with:
         workflow: Docker Build
         token: ${{ secrets.NODE_AUTH_TOKEN }}

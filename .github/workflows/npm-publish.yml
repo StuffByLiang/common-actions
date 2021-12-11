@@ -18,7 +18,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-          cache: 'npm'
           registry-url: https://npm.pkg.github.com/
           scope: '@dashboardlabs'
       - run: git config user.name github-actions

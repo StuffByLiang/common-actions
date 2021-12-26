@@ -58,8 +58,8 @@ jobs:
         tags: registry.dashlabs.xyz/dashlabsai/${{ env.REPO_NAME }}:${{ env.VERSION }}
         build-args: |
           NPM_TOKEN="${{ secrets.NODE_AUTH_TOKEN }}"
-        cache-from: type=registry,ref=registry.dashlabs.xyz/dashlabsai/${{ env.REPO_NAME }}:cache-${{ env.VERSION }}
-        cache-to: type=registry,ref=registry.dashlabs.xyz/dashlabsai/${{ env.REPO_NAME }}:cache-${{ env.VERSION }},mode=max
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: Save Docker Digest
       run: echo "${{ steps.build-docker-image.outputs.digest }}" > digest.txt

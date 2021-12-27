@@ -82,8 +82,6 @@ jobs:
         credentials_json: '${{ secrets.GOOGLE_AUTH_TOKEN }}'
     - name: 'Set up Google Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v0'
-    - name: 'Test gcloud CLI'
-      run: 'gcloud info'
     - name: Get Kubectl Credentials
       run: |-
         gcloud container clusters get-credentials ${{ inputs.kube-cluster }}

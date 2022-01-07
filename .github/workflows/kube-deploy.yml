@@ -25,6 +25,9 @@ on:
         required: false
         default: true
         type: boolean
+      digest:
+        required: false
+        type: string
     secrets:
       NODE_AUTH_TOKEN:
         required: true

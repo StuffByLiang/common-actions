@@ -3,6 +3,10 @@ name: NPM Publish
 on:
   workflow_call:
     inputs:
+      use-gh-app:
+        required: false
+        default: false
+        type: boolean
       move-dir:
         required: false
         default: true
@@ -14,6 +18,10 @@ on:
     secrets:
       NODE_AUTH_TOKEN:
         required: true
+      GH_APP_ID:
+        required: false
+      GH_APP_PRIVATE_KEY:
+        required: false
 
 jobs:
   build:
@@ -45,3 +53,17 @@ jobs:
       - run: git push
         env:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get Token
+        id: token
+        uses: getsentry/action-github-app-token@v1
+        if: inputs.use-gh-app
+        with:
+          app_id: ${{ secrets.GH_APP_ID }}
+          private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      - name: Bumping
+        uses: derberg/npm-dependency-manager-for-your-github-org@v3
+        if: inputs.use-gh-app
+        with:
+          github_token: ${{ steps.token.outputs.token }}
+          committer_username: x-access-token
+          committer_email: 41898282+github-actions[bot]@users.noreply.github.com

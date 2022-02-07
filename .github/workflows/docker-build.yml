@@ -14,8 +14,67 @@ on:
         required: true
       NODE_AUTH_TOKEN:
         required: true
+      GOOGLE_AUTH_TOKEN:
+        required: false
 
 jobs:
+  build_google:
+    name: Build Docker Image (GCP Artifact Registry)
+    runs-on: ubuntu-latest
+    if: secrets.GOOGLE_AUTH_TOKEN
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Download NextJS Build Output
+      uses: actions/download-artifact@v2
+      if: inputs.nextjs-project
+      with:
+        name: nextjs-output
+
+    - name: 'Untar files'
+      if: inputs.nextjs-project
+      run: tar -xvf nextjs-output.tar ./out/
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: 'Google Cloud Auth'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: '${{ secrets.GOOGLE_AUTH_TOKEN }}'
+
+    - name: 'Set up Google Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+
+    - name: Get GCP Docker Credentials
+      run: |-
+        gcloud auth configure-docker --quiet asia-southeast1-docker.pkg.dev
+
+    - name: Set Docker Repo
+      run: echo "VERSION=$(echo "${{ github.ref }}" | grep "develop" > /dev/null && echo "dev" || echo "prod")" >> $GITHUB_ENV
+
+    - name: Get Repository Name
+      run: echo "REPO_NAME=$(echo "${{ github.repository }}" | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
+
+    - name: Build and Push
+      uses: docker/build-push-action@v2
+      id: build-docker-image
+      with:
+        context: .
+        push: true
+        tags: asia-southeast1-docker.pkg.dev/dashlabs/${{ env.VERSION }}/${{ env.REPO_NAME }}:latest
+        build-args: |
+          NPM_TOKEN="${{ secrets.NODE_AUTH_TOKEN }}"
+
+    # - name: Save Docker Digest
+    #   run: echo "${{ steps.build-docker-image.outputs.digest }}" > digest.txt
+
+    # - name: Upload Docker Digest
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: digest
+    #     path: digest.txt
   build:
     name: Build Docker Image
     runs-on: [self-hosted, gcp-dashlabs-private-network]

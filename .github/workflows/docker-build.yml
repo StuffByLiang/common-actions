@@ -20,7 +20,7 @@ on:
 jobs:
   build_google:
     name: Build Docker Image (GCP Artifact Registry)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, gcp-dashlabs-private-network]
     steps:
     - name: Checkout
       uses: actions/checkout@v2

@@ -66,14 +66,14 @@ jobs:
         build-args: |
           NPM_TOKEN="${{ secrets.NODE_AUTH_TOKEN }}"
 
-    # - name: Save Docker Digest
-    #   run: echo "${{ steps.build-docker-image.outputs.digest }}" > digest.txt
+    - name: Save Docker Digest
+      run: echo "${{ steps.build-docker-image.outputs.digest }}" > digest-gar.txt
 
-    # - name: Upload Docker Digest
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: digest
-    #     path: digest.txt
+    - name: Upload Docker Digest
+      uses: actions/upload-artifact@v2
+      with:
+        name: digest-gar
+        path: digest-gar.txt
   build:
     name: Build Docker Image
     runs-on: [self-hosted, gcp-dashlabs-private-network]

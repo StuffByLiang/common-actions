@@ -45,16 +45,23 @@ jobs:
     - name: Download Docker Digest
       uses: actions/download-artifact@v2
       with:
-        name: digest
+        name: digest-gar
     - name: Import Docker Digest
-      run: echo "DIGEST=$(cat digest.txt)" >> $GITHUB_ENV
+      run: echo "DIGEST=$(cat digest-gar.txt)" >> $GITHUB_ENV
     - run: echo "REPO_NAME=$(echo "${{ github.repository }}" | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
+    - name: Set Docker Repo
+      run: echo "VERSION=$(echo "${{ github.ref }}" | grep "develop" > /dev/null && echo "dev" || echo "prod")" >> $GITHUB_ENV
+    - name: 'Set up Google Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+    - name: Get Kubectl Credentials
+      run: |-
+        gcloud container clusters get-credentials ${{ inputs.kube-cluster }}
     - name: Find and Replace Docker Image
       uses: jacobtomlinson/gha-find-replace@v2
       with:
         find: "<IMAGE>"
         regex: false
-        replace: "registry.dashlabs.xyz/dashlabsai/${{ env.REPO_NAME }}@${{ env.DIGEST }}"
+        replace: "asia-southeast1-docker.pkg.dev/dashlabs/${{ env.VERSION }}/${{ env.REPO_NAME }}@${{ env.DIGEST }}"
         include: "${{ inputs.manifest-file }}"
     - name: Find and Replace Doppler Key
       if: inputs.doppler
@@ -83,11 +90,6 @@ jobs:
       uses: 'google-github-actions/auth@v0'
       with:
         credentials_json: '${{ secrets.GOOGLE_AUTH_TOKEN }}'
-    - name: 'Set up Google Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v0'
-    - name: Get Kubectl Credentials
-      run: |-
-        gcloud container clusters get-credentials ${{ inputs.kube-cluster }}
     - name: Deploy to Kubernetes Cluster
       run: |-
         kubectl apply -f "${{ inputs.manifest-file }}" -n ${{ inputs.namespace }}

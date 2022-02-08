@@ -8,10 +8,10 @@ on:
         default: false
         type: boolean
     secrets:
-      # HARBOR_AUTH_USERNAME:
-      #   required: true
-      # HARBOR_AUTH_SECRET:
-      #   required: true
+      HARBOR_AUTH_USERNAME:
+        required: false
+      HARBOR_AUTH_SECRET:
+        required: false
       NODE_AUTH_TOKEN:
         required: true
       GOOGLE_AUTH_TOKEN:

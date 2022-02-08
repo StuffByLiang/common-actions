@@ -12,8 +12,8 @@ on:
       #   required: true
       # HARBOR_AUTH_SECRET:
       #   required: true
-      # NODE_AUTH_TOKEN:
-      #   required: true
+      NODE_AUTH_TOKEN:
+        required: true
       GOOGLE_AUTH_TOKEN:
         required: false
 

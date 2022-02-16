@@ -31,6 +31,12 @@ jobs:
       with:
         name: nextjs-output
 
+    - name: Download NextJS Build Output
+      uses: actions/download-artifact@v2
+      if: inputs.nextjs-project
+      with:
+        name: routes-manifest
+
     - name: 'Untar files'
       if: inputs.nextjs-project
       run: tar -xvf nextjs-output.tar ./out/

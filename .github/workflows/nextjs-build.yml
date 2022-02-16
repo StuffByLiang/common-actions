@@ -41,3 +41,8 @@ jobs:
         name: nextjs-output
         path: nextjs-output.tar
         retention-days: 1
+    - uses: actions/upload-artifact@v2
+      with:
+        name: routing-manifest
+        path: .next/routing-manifest.json
+        retention-days: 1
